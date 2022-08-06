@@ -73,6 +73,9 @@
 #define UIO_GET_RUMBLE  0x3F
 #define UIO_GET_FB_PAR  0x40
 
+#define UIO_GET_SAVE_STATUS 0x4E // Get info about unsaved sram data
+#define UIO_SET_SAVE_STATUS 0x4F // Trigger sram save
+
 // codes as used by 8bit for file loading from OSD
 #define FIO_FILE_TX     0x53
 #define FIO_FILE_TX_DAT 0x54

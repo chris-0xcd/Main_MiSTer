@@ -78,6 +78,7 @@ typedef struct {
 	uint8_t vrr_max_framerate;
 	uint8_t vrr_vesa_framerate;
 	uint16_t video_off;
+	int8_t real_autosave;
 } cfg_t;
 
 extern cfg_t cfg;

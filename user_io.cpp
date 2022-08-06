@@ -2782,6 +2782,35 @@ static int coldreset_req = 0;
 
 static uint32_t res_timer = 0;
 
+static void check_autosave()
+{
+	static int save_cooldown_timer = 0;
+	static int save_delay_timer = 0;
+	if (!is_menu() && cfg.real_autosave) {
+		if (!save_delay_timer) {
+			// no pending save, check core for sram change
+			uint16_t save_state = spi_uio_cmd(UIO_GET_SAVE_STATUS);
+			if (save_state & 1) {
+				// SRAM changed start timer, currently hardcoded to 2 sec.
+				// the idea is to to group related changes into a single write while still saving quickly enough
+				// to not have the user turn of the power after triggering a save in game.
+				save_delay_timer = GetTimer(2000);
+			}
+		} else if (save_delay_timer && CheckTimer(save_delay_timer) && (!save_cooldown_timer || CheckTimer(save_cooldown_timer))) {
+			// a save is pending, the save-delay timer has ellapsed and we either don't have a cooldown or the cooldown has ellapsed as well
+
+			// tell core to initiate a save to sd-card
+			spi_uio_cmd8(UIO_SET_SAVE_STATUS, 1);
+
+			// cooldown timer to reduce sd-card wear, currently hardcoded to 30 sec.
+			save_cooldown_timer = GetTimer(30000);
+
+			// no save is pending
+			save_delay_timer = 0;
+		}
+	}
+}
+
 void user_io_poll()
 {
 	PROFILE_FUNCTION();
@@ -3374,6 +3403,9 @@ void user_io_poll()
 	if (is_pce()) pcecd_poll();
 	if (is_saturn()) saturn_poll();
 	if (is_psx()) psx_poll();
+
+	check_autosave();
+
 	process_ss(0);
 }
 
